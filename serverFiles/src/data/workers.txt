@@ -1,0 +1,20 @@
+1
+Tip: fizica
+Nume: Gae
+Prenume: Gabriel
+Telefon: 0767398060
+Email: gabi@gmail.com
+Parola: gabi
+Stare: disponibil
+0
+5
+Cluj
+Weekend days
+Bucuresti
+Full time
+Bucuresti
+Weekdays
+Pitesti
+Weekend days
+Pitesti
+Weekend days
