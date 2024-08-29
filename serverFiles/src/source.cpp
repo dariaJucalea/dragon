@@ -8,6 +8,8 @@
 #include <thread>
 #include <vector>
 #include <mutex>
+#include <cstdlib>
+#include <ctime>
 #include "include/user.h"
 #include "include/worker.h"
 #include <signal.h>
@@ -20,6 +22,8 @@ using namespace std;
 
 vector<user> users;
 vector<worker> workers;
+vector<request> newRequests;
+vector<request> ongoingRequests;
 
 void initializeUsers()
 {
@@ -249,130 +253,534 @@ char *serializeDisponibilitate(string oras, string timp)
     buffer[offset] = '/';
     offset++;
 
-    cout<<buffer<<endl;
+    cout << buffer << endl;
 
     return buffer;
+}
+
+int get_id_size(int id)
+{
+    int nr = 0;
+
+    if (id == 0)
+    {
+        return 1;
+    }
+
+    while (id != 0)
+    {
+        id /= 10;
+        nr++;
+    }
+
+    return nr;
+}
+
+void search_workers(int socket, char *address)
+{
+
+    char *token;
+
+    token = strtok(address, ",");
+
+    int nr = 0;
+
+    for (int i = 0; i < workers.size(); i++)
+    {
+        for (int j = 0; j < workers[i].getDisponibilitate().size(); j++)
+        {
+            if (workers[i].getDisponibilitate()[j].first == "Toata tara")
+            {
+                nr++;
+                break;
+            }
+            else if (strstr(workers[i].getDisponibilitate()[j].first.c_str(), token) != NULL)
+            {
+                nr++;
+                break;
+            }
+        }
+    }
+
+    send(socket, &nr, sizeof(int), 0);
+
+    for (int i = 0; i < workers.size(); i++)
+    {
+        for (int j = 0; j < workers[i].getDisponibilitate().size(); j++)
+        {
+            char *buffer;
+
+            int length;
+
+            if (workers[i].getDisponibilitate()[j].first == "Toata tara")
+            {
+                length = get_id_size(i) + 1 + workers[i].getNume().length() + 1 + workers[i].getPrenume().length() + 1;
+
+                buffer = (char *)malloc(length * sizeof(char));
+
+                int offset = 0;
+
+                char id_str[12];
+                snprintf(id_str, sizeof(id_str), "%d", i);
+
+                memcpy(buffer + offset, id_str, strlen(id_str));
+                offset += strlen(id_str);
+
+                buffer[offset] = '/';
+                offset++;
+
+                memcpy(buffer + offset, workers[i].getNume().c_str(), workers[i].getNume().length());
+                offset += workers[i].getNume().length();
+
+                buffer[offset] = '/';
+                offset++;
+
+                memcpy(buffer + offset, workers[i].getPrenume().c_str(), workers[i].getPrenume().length());
+                offset += workers[i].getPrenume().length();
+
+                buffer[offset] = '\0';
+
+                send(socket, &length, sizeof(int), 0);
+
+                send(socket, buffer, length, 0);
+            }
+            else if (strstr(workers[i].getDisponibilitate()[j].first.c_str(), token) != NULL)
+            {
+                length = get_id_size(i) + 1 + workers[i].getNume().length() + 1 + workers[i].getPrenume().length() + 1;
+
+                buffer = (char *)malloc(length * sizeof(char));
+
+                int offset = 0;
+
+                char id_str[12];
+                snprintf(id_str, sizeof(id_str), "%d", i);
+
+                memcpy(buffer + offset, id_str, strlen(id_str));
+                offset += strlen(id_str);
+
+                buffer[offset] = '/';
+                offset++;
+
+                memcpy(buffer + offset, workers[i].getNume().c_str(), workers[i].getNume().length());
+                offset += workers[i].getNume().length();
+
+                buffer[offset] = '/';
+                offset++;
+
+                memcpy(buffer + offset, workers[i].getPrenume().c_str(), workers[i].getPrenume().length());
+                offset += workers[i].getPrenume().length();
+
+                buffer[offset] = '\0';
+
+                send(socket, &length, sizeof(int), 0);
+
+                send(socket, buffer, length, 0);
+            }
+        }
+    }
+}
+
+request atributeWorker(int sock, request req)
+{
+
+    char *token;
+
+    std::string adresa = req.getAdresa();
+
+    char *adresa_copie = new char[adresa.length() + 1];
+    strcpy(adresa_copie, adresa.c_str());
+
+    token = strtok(adresa_copie, ",");
+
+    vector<int> ids;
+
+    for (int i = 0; i < workers.size(); i++)
+    {
+        for (int j = 0; j < workers[i].getDisponibilitate().size(); j++)
+        {
+
+            if (workers[i].getDisponibilitate()[j].first == "Toata tara")
+            {
+                ids.push_back(i);
+                break;
+            }
+            else if (strstr(workers[i].getDisponibilitate()[j].first.c_str(), token) != NULL)
+            {
+
+                ids.push_back(i);
+                break;
+            }
+        }
+    }
+
+    if (!ids.empty())
+    {
+
+        srand(static_cast<unsigned>(time(0)));
+
+        int random_index = rand() % ids.size();
+
+        int random_id = ids[random_index];
+
+        req.setWorkerId(random_id);
+    }
+
+    return req;
+}
+
+void saveNewRequests()
+{
+    ofstream outfile("src/data/newRequests.txt");
+
+    if (!outfile)
+    {
+        cerr << "Eroare la deschiderea fisierului de new requests" << std::endl;
+        exit(1);
+    }
+
+    outfile << newRequests.size();
+
+    outfile << endl;
+
+    for (int i = 0; i < newRequests.size(); i++)
+    {
+        outfile << newRequests[i];
+    }
+    outfile.close();
+}
+
+void initializaNewRequests()
+{
+    ifstream infile("src/data/newRequests.txt");
+
+    if (!infile)
+    {
+        cerr << "Eroare la deschiderea fisierului de new requests" << std::endl;
+        exit(1);
+    }
+    int size;
+
+    infile>> size;
+    infile.ignore();
+
+    for (int i = 0; i < size; i++)
+    {
+
+        request req;
+        infile >> req;
+        newRequests.push_back(req);
+
+    }
+
+    infile.close();
+}
+
+void saveOngoingRequests()
+{
+    ofstream outfile("src/data/ongoingRequests.txt");
+
+    if (!outfile)
+    {
+        cerr << "Eroare la deschiderea fisierului de ongoing requests" << std::endl;
+        exit(1);
+    }
+
+    outfile << ongoingRequests.size();
+
+    outfile << endl;
+
+    for (int i = 0; i < ongoingRequests.size(); i++)
+    {
+        outfile << ongoingRequests[i];
+    }
+    outfile.close();
+}
+
+void initializaOngoingRequests()
+{
+    ifstream infile("src/data/ongoingRequests.txt");
+
+    if (!infile)
+    {
+        cerr << "Eroare la deschiderea fisierului de ongoing requests" << std::endl;
+        exit(1);
+    }
+    int size;
+
+    infile>> size;
+    infile.ignore();
+
+    for (int i = 0; i < size; i++)
+    {
+
+        request req;
+        infile >> req;
+        ongoingRequests.push_back(req);
+    }
+
+    infile.close();
 }
 
 void handle_user_menu(int socket)
 {
 
-    while(1)
+    while (1)
     {
         int optiune;
 
-        recv(socket,&optiune,sizeof(int),0);
+        recv(socket, &optiune, sizeof(int), 0);
 
-        switch(optiune)
+        switch (optiune)
         {
-            case 12:
+        case 12:
+        {
+            int size;
+
+            recv(socket, &size, sizeof(int), 0);
+
+            char *buffer;
+
+            buffer = (char *)malloc(size * sizeof(char));
+
+            recv(socket, buffer, size, 0);
+
+            // printf("%s\n",buffer);
+
+            request *req = new request();
+
+            req->deserializeRequest(buffer);
+
+            std::cout << *req;
+
+            newRequests.push_back(*req);
+
+            // if(req->getModAtribuire()=="automat")
+            //{
+            //     *req=atributeWorker(socket,*req);
+            // }
+
+            saveNewRequests();
+        }
+
+        case 13:
+        {
+            int size;
+
+            recv(socket, &size, sizeof(int), 0);
+
+            char *buffer;
+
+            buffer = (char *)malloc(size * sizeof(char));
+
+            recv(socket, buffer, size, 0);
+
+            search_workers(socket, buffer);
+        }
+        }
+    }
+}
+
+void getNewRequests(int socket, int id)
+{
+    int nr=0;
+
+    for(int i=0;i<newRequests.size();i++)
+    {
+        char* token;
+
+        std::string adresa = newRequests[i].getAdresa();
+
+        char *adresa_copie = new char[adresa.length() + 1];
+        strcpy(adresa_copie, adresa.c_str());
+
+        token = strtok(adresa_copie, ",");
+
+        if(newRequests[i].getWorkerId()==id)
+        {
+            nr++;
+        }
+        else
+        {
+
+        for(int j=0;j<workers[id].getDisponibilitate().size();j++)
+        {
+            if(workers[id].getDisponibilitate()[j].first.c_str()=="Toata tara" && newRequests[i].getWorkerId()==-1 )
             {
-                int size;
-
-                recv(socket,&size, sizeof(int),0);
-
-                char* buffer;
-
-                buffer=(char*)malloc(size*sizeof(char));
-
-                recv(socket,buffer,size,0);
-
-                printf("%s\n",buffer);
-
-                request* req=new request();
-
-                req->deserializeRequest(buffer);
-
-                std::cout<<*req;
-
+                nr++;
+                break;
             }
-
-            case 13:
+            else if (strncmp(workers[id].getDisponibilitate()[j].first.c_str(), token, strlen(token)) == 0 && newRequests[i].getWorkerId()==-1)
             {
-                int size;
+                nr++;
+                break;
+            }
+        }
+        }
+    }
 
-                recv(socket,&size,sizeof(int),0);
-    
+        
+    send(socket,&nr, sizeof(int),0);
+
+        for(int i=0;i<newRequests.size();i++)
+        {
+            char* token;
+
+            std::string adresa = newRequests[i].getAdresa();
+
+            char *adresa_copie = new char[adresa.length() + 1];
+            strcpy(adresa_copie, adresa.c_str());
+
+            token = strtok(adresa_copie, ",");
+
+            char* buffer=NULL;
+
+            int length=0;
+
+            if(newRequests[i].getWorkerId()==id)
+            {
+                buffer=newRequests[i].serializeRequestForWorker(i);
+
+                length=strlen(buffer);
+
+                send(socket,&length, sizeof(int),0);
+
+                send(socket,buffer,length,0);
+            }
+            else
+            {
+
+                for(int j=0;j<workers[id].getDisponibilitate().size();j++)
+                {
+                    if(workers[id].getDisponibilitate()[j].first.c_str()=="Toata tara" && newRequests[i].getWorkerId()==-1)
+                    {
+                        buffer=newRequests[i].serializeRequestForWorker(i);
+                        
+                        length=strlen(buffer);
+
+                        send(socket,&length, sizeof(int),0);
+
+                        send(socket,buffer,length,0);
+                        break;
+                    }
+                    else if(strstr(workers[id].getDisponibilitate()[j].first.c_str(),token)!=NULL && newRequests[i].getWorkerId()==-1)
+                    {
+                        buffer=newRequests[i].serializeRequestForWorker(i);
+
+                        length=strlen(buffer);
+
+                        send(socket,&length, sizeof(int),0);
+
+                        send(socket,buffer,length,0);
+                        break;
+                    }
+                }
             }
         }
 
-       
-    }
 }
 
 void handle_worker_menu(int socket)
 {
 
-    while(1)
+    while (1)
     {
 
-    int optiune;
+        int optiune;
 
-    recv(socket, &optiune, sizeof(int), 0);
+        recv(socket, &optiune, sizeof(int), 0);
 
-    switch (optiune)
-    {
-    case 10:
-    {
-        int id;
-
-        recv(socket, &id, sizeof(int), 0);
-
-        int size = workers[id].getDisponibilitate().size();
-
-        send(socket, &size, sizeof(int), 0);
-
-        for (int i = 0; i < size; i++)
+        switch (optiune)
         {
-            char *buffer = serializeDisponibilitate(workers[id].getDisponibilitate()[i].first, workers[id].getDisponibilitate()[i].second);
+        case 10:
+        {
+            int id;
 
-            int length = strlen(buffer);
+            recv(socket, &id, sizeof(int), 0);
 
-            send(socket, &length, sizeof(int), 0);
+            int size = workers[id].getDisponibilitate().size();
 
-            send(socket, buffer, length, 0);
+            send(socket, &size, sizeof(int), 0);
+
+            for (int i = 0; i < size; i++)
+            {
+                char *buffer = serializeDisponibilitate(workers[id].getDisponibilitate()[i].first, workers[id].getDisponibilitate()[i].second);
+
+                int length = strlen(buffer);
+
+                send(socket, &length, sizeof(int), 0);
+
+                send(socket, buffer, length, 0);
+            }
+
+            break;
         }
 
-        break;
-    }
-
-    case 11:
-    {
-        int id;
-
-        recv(socket,&id,sizeof(int),0);
-
-        int length;
-
-        recv(socket, &length, sizeof(int), 0);
-
-        char *buffer = (char *)malloc(length * sizeof(char));
-
-        recv(socket, buffer, length, 0);
-
-        char* token;
-
-        token = strtok(buffer, "/");
-
-        string oras,timp;
-
-        if (token != nullptr)
+        case 11:
         {
-            oras= std::string(token);
-        }
+            int id;
 
-        token = strtok(nullptr, "/");
-        if (token != nullptr)
+            recv(socket, &id, sizeof(int), 0);
+
+            int length;
+
+            recv(socket, &length, sizeof(int), 0);
+
+            char *buffer = (char *)malloc(length * sizeof(char));
+
+            recv(socket, buffer, length, 0);
+
+            char *token;
+
+            token = strtok(buffer, "/");
+
+            string oras, timp;
+
+            if (token != nullptr)
+            {
+                oras = std::string(token);
+            }
+
+            token = strtok(nullptr, "/");
+            if (token != nullptr)
+            {
+                timp = std::string(token);
+            }
+
+            workers[id].addDisponibiliate(oras, timp);
+
+            saveWorkers();
+        }
+        case 12:
         {
-            timp = std::string(token);
+            int id;
+
+            recv(socket,&id,sizeof(int),0);
+
+            getNewRequests(socket,id);
         }
+        case 13:
+        {
+            int id;
 
-        workers[id].addDisponibiliate(oras,timp);
+            int nr;
 
-        saveWorkers();
+            recv(socket,&id,sizeof(int),0);
 
-    }
-    }
+            recv(socket,&nr,sizeof(int),0);
+
+            ongoingRequests.push_back(newRequests[nr]);
+
+            newRequests.erase(newRequests.begin() + nr);
+
+            saveOngoingRequests();
+
+            saveNewRequests();
+
+            int ok=0;
+
+            send(socket,&ok,sizeof(int),0);
+        }
+        }
     }
 }
 
@@ -510,6 +918,8 @@ int main()
 
     initializeUsers();
     initializeWorkers();
+    initializaNewRequests();
+    initializaOngoingRequests();
 
     int server_fd;
     struct sockaddr_in address;

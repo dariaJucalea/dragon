@@ -26,8 +26,13 @@ public:
     ~request();
 
     char* serializeRequest();
+    char* serializeRequestForWorker(int id);
     void deserializeRequest(char* buffer);
     int  getMinutesSinceCreation() const;
+    string getModAtribuire();
+    string getAdresa();
+    void setWorkerId(int id);
+    int getWorkerId();
 
     friend std::istream& operator>>(std::istream& is, request& r);
     friend std::ostream& operator<<(std::ostream& os, const request& r);
