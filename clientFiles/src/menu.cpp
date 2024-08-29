@@ -165,8 +165,98 @@ void menu::modificaProgramul(int id, int sock)
     }
 }
 
+void printRequest(char *buffer)
+{
+    cout << "--------\n";
+    char *token;
+
+    token = strtok(buffer, "/");
+
+    cout << "Nr crt: " << token << endl;
+
+    token = strtok(NULL, "/");
+
+    cout << "Titlu: " << token << endl;
+
+    token = strtok(NULL, "/");
+
+    cout << "Descriere: " << token << endl;
+
+    token = strtok(NULL, "/");
+
+    token = strtok(NULL, "/");
+
+    cout << "Adresa: " << token << endl;
+    cout << "--------\n";
+}
+
+void preiaCerere(int sock, int id, int nr)
+{
+    int optiune=13;
+
+    send(sock,&optiune,sizeof(int),0);
+
+    send(sock,&id,sizeof(int),0);
+
+    send(sock,&nr,sizeof(int),0);
+
+    int response;
+
+    recv(sock,&response, sizeof(int),0);
+}
+
 void getSolicitariPrimite(int id, int sock)
 {
+    system("clear");
+    int optiune = 12;
+
+    send(sock, &optiune, sizeof(int), 0);
+
+    send(sock, &id, sizeof(int), 0);
+
+    int count;
+
+    recv(sock, &count, sizeof(int), 0);
+
+    if (count != 0)
+    {
+
+        for (int i = 0; i < count; i++)
+        {
+            int length;
+
+            char *buffer;
+
+            recv(sock, &length, sizeof(int), 0);
+
+            buffer = (char *)malloc(length * sizeof(char));
+
+            recv(sock, buffer, length, 0);
+
+            printRequest(buffer);
+        }
+
+        cout << "Doriti sa preluati vreo cerere?\n1.Da\n2.Nu\n";
+
+        int opt;
+        
+        cin >> opt;
+
+        if (opt == 1)
+        {
+            cout<<"Introduceti numarul cererii pe care doriti sa o preluati: ";
+
+            int nr;
+
+            cin >> nr;
+
+            preiaCerere(sock,id,nr);
+        }
+    }
+    else
+    {
+        cout << "Nu ati primit nicio cerere\n";
+    }
 }
 
 void getSolicitariFinalizate(int id, int sock)
@@ -268,31 +358,69 @@ void menu::plaseazaCerere(int id, int sock)
 
         int size;
 
-        size=adresa.length();
+        size = adresa.length();
 
-        send(sock,&size, sizeof(int),0);
+        send(sock, &size, sizeof(int), 0);
 
-        send(sock,adresa.c_str(),size,0);
+        send(sock, adresa.c_str(), size, 0);
 
+        int count;
+
+        recv(sock, &count, sizeof(int), 0);
+
+        for (int i = 0; i < count; i++)
+        {
+            char *buffer;
+
+            int length;
+
+            recv(sock, &length, sizeof(int), 0);
+
+            buffer = (char *)malloc(length * sizeof(char));
+
+            recv(sock, buffer, length, 0);
+
+            cout << buffer << endl;
+        }
+
+        cout << "Introduceti un numar de worker valabil: ";
+
+        int idW;
+
+        cin >> idW;
+
+        request *req = new request(titlu, descriere, modeAtribuire, adresa, id, idW);
+
+        char *buffer = req->serializeRequest();
+        printf("%s\n", buffer);
+
+        int optiune = 12;
+        send(sock, &optiune, sizeof(int), 0);
+
+        int sizee = strlen(buffer);
+
+        send(sock, &sizee, sizeof(int), 0);
+
+        send(sock, buffer, sizee, 0);
     }
     else
     {
         modeAtribuire = "automat";
+
+        request *req = new request(titlu, descriere, modeAtribuire, adresa, id, -1);
+
+        char *buffer = req->serializeRequest();
+        printf("%s\n", buffer);
+
+        int optiune = 12;
+        send(sock, &optiune, sizeof(int), 0);
+
+        int size = strlen(buffer);
+
+        send(sock, &size, sizeof(int), 0);
+
+        send(sock, buffer, size, 0);
     }
-
-    request *req = new request(titlu, descriere, modeAtribuire, adresa, id);
-
-    char *buffer = req->serializeRequest();
-    printf("%s\n", buffer);
-
-    int optiune = 12;
-    send(sock, &optiune, sizeof(int), 0);
-
-    int size = strlen(buffer);
-
-    send(sock, &size, sizeof(int), 0);
-
-    send(sock, buffer, size, 0);
 
     sleep(300000000);
 }
@@ -311,7 +439,7 @@ void menu::UserMenu(int id, int sock)
     {
     case 1:
     {
-        this->plaseazaCerere(id, sock);
+
         break;
     }
     case 2:
@@ -320,6 +448,7 @@ void menu::UserMenu(int id, int sock)
     }
     case 3:
     {
+        this->plaseazaCerere(id, sock);
         break;
     }
     default:

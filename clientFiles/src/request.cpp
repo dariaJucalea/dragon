@@ -5,25 +5,16 @@
 request::request()
 {
     this->stareCerere = "Noua";
-    creationTime = std::chrono::system_clock::now();
     this->stareWorker = "Indisponibil";
     this->idWorker = -1;
 }
 
-request::request(string titlu, string descriere, string modAtribuire, string adresa, int idUser) : titlu(titlu), descriere(descriere), modAtribuire(modAtribuire), adresa(adresa), idUser(idUser)
+request::request(string titlu, string descriere, string modAtribuire, string adresa, int idUser, int idWorker) : titlu(titlu), descriere(descriere), modAtribuire(modAtribuire), adresa(adresa), idUser(idUser),idWorker(idWorker)
 {
     this->stareCerere = "Noua";
-    creationTime = std::chrono::system_clock::now();
     this->stareWorker = "Indisponibil";
-    this->idWorker = -1;
 }
 
-int request::getMinutesSinceCreation() const
-{
-    auto now = std::chrono::system_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::minutes>(now - creationTime);
-    return duration.count();
-}
 
 request::~request()
 {
@@ -48,12 +39,10 @@ std::ostream &operator<<(std::ostream &os, const request &r)
 char *request::serializeRequest()
 {
 
-    std::string creationTimeStr = std::to_string(std::chrono::duration_cast<std::chrono::seconds>(creationTime.time_since_epoch()).count());
     std::string idWorkerStr = std::to_string(idWorker);
     std::string idUserStr = std::to_string(idUser);
 
-    std::string serializedData = creationTimeStr + "/" +
-                                 idWorkerStr + "/" +
+    std::string serializedData = idWorkerStr + "/" +
                                  idUserStr + "/" +
                                  titlu + "/" +
                                  descriere + "/" +
@@ -79,14 +68,6 @@ void request::deserializeRequest(char *buffer)
 {
 
     char *token = strtok(buffer, "/");
-
-    if (token != nullptr)
-    {
-
-        auto creationTimeSec = std::stoll(token);
-        creationTime = std::chrono::system_clock::from_time_t(creationTimeSec);
-        token = strtok(nullptr, "/");
-    }
 
     if (token != nullptr)
     {

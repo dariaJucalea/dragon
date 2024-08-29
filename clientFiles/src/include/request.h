@@ -9,7 +9,6 @@ class request
 {
 private:
 
-    std::chrono::time_point<std::chrono::system_clock> creationTime;
     string titlu;
     string descriere;
     string modAtribuire;
@@ -22,12 +21,11 @@ private:
 public:
 
     request();
-    request(string titlu, string descriere, string modAtribuire, string adresa, int idUser);
+    request(string titlu, string descriere, string modAtribuire, string adresa, int idUser, int idWorker);
     ~request();
 
     char* serializeRequest();
     void deserializeRequest(char* buffer);
-    int  getMinutesSinceCreation() const;
 
     friend std::istream& operator>>(std::istream& is, request& r);
     friend std::ostream& operator<<(std::ostream& os, const request& r);

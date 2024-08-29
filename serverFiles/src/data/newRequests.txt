@@ -1,0 +1,19 @@
+2
+Creation time: 2024-08-28 11:30:35
+Titlu: Verificat sistem
+Descriere: Vreau sa verificati sistemul electric al casei
+Mod atribuire: automat
+Adresa: Pitesti, Calea Bucuresti, Nr 4
+Id user: 0
+Id worker: -1
+Stare cerere: Noua
+Stare worker: Indisponibil
+Creation time: 2024-08-28 12:52:53
+Titlu: Verificare panou
+Descriere: am de verificat un panou electric
+Mod atribuire: automat
+Adresa: Bucuresti, Sector 6, Strada Parafinei nr 6
+Id user: 0
+Id worker: -1
+Stare cerere: Noua
+Stare worker: Indisponibil

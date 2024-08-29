@@ -1,0 +1,10 @@
+1
+Creation time: 2024-08-28 12:28:05
+Titlu: Schimbare priza
+Descriere: Am de schimbat o priza de 32 kw
+Mod atribuire: manual
+Adresa: Bucuresti, Sector 6, strada parafinei nr 6
+Id user: 0
+Id worker: 0
+Stare cerere: Noua
+Stare worker: Indisponibil
