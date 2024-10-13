@@ -29,6 +29,7 @@ public:
     char* serializeRequestForWorker(int id);
     void deserializeRequest(char* buffer);
     int  getMinutesSinceCreation() const;
+    int getUserID();
     string getModAtribuire();
     string getAdresa();
     void setWorkerId(int id);

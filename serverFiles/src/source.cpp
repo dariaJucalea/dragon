@@ -24,6 +24,13 @@ vector<user> users;
 vector<worker> workers;
 vector<request> newRequests;
 vector<request> ongoingRequests;
+vector<request> suspendedRequests;
+vector<request> canceledRequests;
+vector<request> unwantedRequests;
+vector<request> doneRequests;
+vector<request> inProgressRequests;
+
+void handle_client(int socket);
 
 void initializeUsers()
 {
@@ -375,6 +382,8 @@ void search_workers(int socket, char *address)
                 send(socket, &length, sizeof(int), 0);
 
                 send(socket, buffer, length, 0);
+
+                break;
             }
         }
     }
@@ -460,7 +469,7 @@ void initializaNewRequests()
     }
     int size;
 
-    infile>> size;
+    infile >> size;
     infile.ignore();
 
     for (int i = 0; i < size; i++)
@@ -469,7 +478,6 @@ void initializaNewRequests()
         request req;
         infile >> req;
         newRequests.push_back(req);
-
     }
 
     infile.close();
@@ -507,7 +515,7 @@ void initializaOngoingRequests()
     }
     int size;
 
-    infile>> size;
+    infile >> size;
     infile.ignore();
 
     for (int i = 0; i < size; i++)
@@ -521,6 +529,198 @@ void initializaOngoingRequests()
     infile.close();
 }
 
+void getCereriNoi(int id, int sock)
+{
+    int counter = 0;
+
+    for (int i = 0; i < newRequests.size(); i++)
+    {
+        if (newRequests[i].getUserID() == id)
+            counter++;
+    }
+
+    send(sock, &counter, sizeof(int), 0);
+
+    for (int i = 0; i < newRequests.size(); i++)
+    {
+        if (newRequests[i].getUserID() == id)
+        {
+            char *buffer = newRequests[i].serializeRequest();
+
+            int sizee = strlen(buffer);
+
+            send(sock, &sizee, sizeof(int), 0);
+
+            send(sock, buffer, sizee, 0);
+        }
+    }
+}
+
+void getCereriInDesfasurare(int id, int sock)
+{
+    int counter = 0;
+
+    for (int i = 0; i < ongoingRequests.size(); i++)
+    {
+        if (ongoingRequests[i].getUserID() == id)
+            counter++;
+    }
+
+    send(sock, &counter, sizeof(int), 0);
+
+    for (int i = 0; i < ongoingRequests.size(); i++)
+    {
+        if (ongoingRequests[i].getUserID() == id)
+        {
+            char *buffer = ongoingRequests[i].serializeRequest();
+
+            int sizee = strlen(buffer);
+
+            send(sock, &sizee, sizeof(int), 0);
+
+            send(sock, buffer, sizee, 0);
+        }
+    }
+}
+
+void getCereriSuspendate(int id, int sock)
+{
+    int counter = 0;
+
+    for (int i = 0; i < suspendedRequests.size(); i++)
+    {
+        if (suspendedRequests[i].getUserID() == id)
+            counter++;
+    }
+
+    send(sock, &counter, sizeof(int), 0);
+
+    for (int i = 0; i < suspendedRequests.size(); i++)
+    {
+        if (suspendedRequests[i].getUserID() == id)
+        {
+            char *buffer = suspendedRequests[i].serializeRequest();
+
+            int sizee = strlen(buffer);
+
+            send(sock, &sizee, sizeof(int), 0);
+
+            send(sock, buffer, sizee, 0);
+        }
+    }
+}
+
+void getCereriAnulate(int id, int sock)
+{
+    int counter = 0;
+
+    for (int i = 0; i < canceledRequests.size(); i++)
+    {
+        if (canceledRequests[i].getUserID() == id)
+            counter++;
+    }
+
+    send(sock, &counter, sizeof(int), 0);
+
+    for (int i = 0; i < canceledRequests.size(); i++)
+    {
+        if (canceledRequests[i].getUserID() == id)
+        {
+            char *buffer = canceledRequests[i].serializeRequest();
+
+            int sizee = strlen(buffer);
+
+            send(sock, &sizee, sizeof(int), 0);
+
+            send(sock, buffer, sizee, 0);
+        }
+    }
+}
+
+void getCereriNepreluate(int id, int sock)
+{
+    int counter = 0;
+
+    for (int i = 0; i < unwantedRequests.size(); i++)
+    {
+        if (unwantedRequests[i].getUserID() == id)
+            counter++;
+    }
+
+    send(sock, &counter, sizeof(int), 0);
+
+    for (int i = 0; i < unwantedRequests.size(); i++)
+    {
+        if (unwantedRequests[i].getUserID() == id)
+        {
+            char *buffer = unwantedRequests[i].serializeRequest();
+
+            int sizee = strlen(buffer);
+
+            send(sock, &sizee, sizeof(int), 0);
+
+            send(sock, buffer, sizee, 0);
+        }
+    }
+}
+
+void getCereriInCursDeDesfasurare(int id, int sock)
+{
+    int counter = 0;
+
+    for (int i = 0; i < inProgressRequests.size(); i++)
+    {
+        if (inProgressRequests[i].getUserID() == id)
+            counter++;
+    }
+
+    send(sock, &counter, sizeof(int), 0);
+
+    for (int i = 0; i < inProgressRequests.size(); i++)
+    {
+        if (inProgressRequests[i].getUserID() == id)
+        {
+            char *buffer = inProgressRequests[i].serializeRequest();
+
+            int sizee = strlen(buffer);
+
+            send(sock, &sizee, sizeof(int), 0);
+
+            send(sock, buffer, sizee, 0);
+        }
+    }
+}
+
+void getCereriFinalizate(int id, int sock)
+{
+    int count=0;
+
+    for( int i=0;i<doneRequests.size();i++)
+    {
+        if(doneRequests[i].getUserID()==id)count++;
+    }
+
+
+    send(sock, &count,sizeof(int),0);
+    
+     for( int i=0;i<doneRequests.size();i++)
+    {
+        if(doneRequests[i].getUserID()==id)
+        {
+            char* buffer=doneRequests[i].serializeRequest();
+
+            int len;
+
+            len=strlen(buffer);
+
+            send(sock,&len,sizeof(int),0);
+
+            send(sock,buffer,len,0);
+        }
+    }
+
+}
+
 void handle_user_menu(int socket)
 {
 
@@ -532,6 +732,8 @@ void handle_user_menu(int socket)
 
         switch (optiune)
         {
+
+            // salvam cererea noua
         case 12:
         {
             int size;
@@ -562,6 +764,7 @@ void handle_user_menu(int socket)
             saveNewRequests();
         }
 
+            // cautam workeri pentru a crea o cerere
         case 13:
         {
             int size;
@@ -576,17 +779,75 @@ void handle_user_menu(int socket)
 
             search_workers(socket, buffer);
         }
+            // afisam cererile (toate tipurile)
+        case 14:
+        {
+            int id;
+
+            recv(socket, &id, sizeof(int), 0);
+
+            int type;
+
+            recv(socket, &type, sizeof(type), 0);
+
+            switch (type)
+            {
+            case 1:
+            {
+                getCereriNoi(id,socket);
+                break;
+            }
+            case 2:
+            {
+                getCereriInDesfasurare(id,socket);
+                break;
+            }
+            case 3:
+            {
+                getCereriSuspendate(id,socket);
+                break;
+            }
+            case 4:
+            {
+                getCereriAnulate(id,socket);
+                break;
+            }
+            case 5:
+            {
+                getCereriNepreluate(id,socket);
+                break;
+            }
+            case 6:
+            {
+                getCereriInCursDeDesfasurare(id,socket);
+                break;
+            }
+            }
+
+            break;
+        }
+            // afisam cererile finalizate
+        case 15:
+        {
+            int id;
+
+            recv(socket,&id,sizeof(id),0);
+
+            getCereriFinalizate(id,socket);
+
+            break;
+        }
         }
     }
 }
 
 void getNewRequests(int socket, int id)
 {
-    int nr=0;
+    int nr = 0;
 
-    for(int i=0;i<newRequests.size();i++)
+    for (int i = 0; i < newRequests.size(); i++)
     {
-        char* token;
+        char *token;
 
         std::string adresa = newRequests[i].getAdresa();
 
@@ -595,88 +856,86 @@ void getNewRequests(int socket, int id)
 
         token = strtok(adresa_copie, ",");
 
-        if(newRequests[i].getWorkerId()==id)
+        if (newRequests[i].getWorkerId() == id)
         {
             nr++;
         }
         else
         {
 
-        for(int j=0;j<workers[id].getDisponibilitate().size();j++)
-        {
-            if(workers[id].getDisponibilitate()[j].first.c_str()=="Toata tara" && newRequests[i].getWorkerId()==-1 )
+            for (int j = 0; j < workers[id].getDisponibilitate().size(); j++)
             {
-                nr++;
-                break;
-            }
-            else if (strncmp(workers[id].getDisponibilitate()[j].first.c_str(), token, strlen(token)) == 0 && newRequests[i].getWorkerId()==-1)
-            {
-                nr++;
-                break;
-            }
-        }
-        }
-    }
-
-        
-    send(socket,&nr, sizeof(int),0);
-
-        for(int i=0;i<newRequests.size();i++)
-        {
-            char* token;
-
-            std::string adresa = newRequests[i].getAdresa();
-
-            char *adresa_copie = new char[adresa.length() + 1];
-            strcpy(adresa_copie, adresa.c_str());
-
-            token = strtok(adresa_copie, ",");
-
-            char* buffer=NULL;
-
-            int length=0;
-
-            if(newRequests[i].getWorkerId()==id)
-            {
-                buffer=newRequests[i].serializeRequestForWorker(i);
-
-                length=strlen(buffer);
-
-                send(socket,&length, sizeof(int),0);
-
-                send(socket,buffer,length,0);
-            }
-            else
-            {
-
-                for(int j=0;j<workers[id].getDisponibilitate().size();j++)
+                if (workers[id].getDisponibilitate()[j].first.c_str() == "Toata tara" && newRequests[i].getWorkerId() == -1)
                 {
-                    if(workers[id].getDisponibilitate()[j].first.c_str()=="Toata tara" && newRequests[i].getWorkerId()==-1)
-                    {
-                        buffer=newRequests[i].serializeRequestForWorker(i);
-                        
-                        length=strlen(buffer);
-
-                        send(socket,&length, sizeof(int),0);
-
-                        send(socket,buffer,length,0);
-                        break;
-                    }
-                    else if(strstr(workers[id].getDisponibilitate()[j].first.c_str(),token)!=NULL && newRequests[i].getWorkerId()==-1)
-                    {
-                        buffer=newRequests[i].serializeRequestForWorker(i);
-
-                        length=strlen(buffer);
-
-                        send(socket,&length, sizeof(int),0);
-
-                        send(socket,buffer,length,0);
-                        break;
-                    }
+                    nr++;
+                    break;
+                }
+                else if (strncmp(workers[id].getDisponibilitate()[j].first.c_str(), token, strlen(token)) == 0 && newRequests[i].getWorkerId() == -1)
+                {
+                    nr++;
+                    break;
                 }
             }
         }
+    }
 
+    send(socket, &nr, sizeof(int), 0);
+
+    for (int i = 0; i < newRequests.size(); i++)
+    {
+        char *token;
+
+        std::string adresa = newRequests[i].getAdresa();
+
+        char *adresa_copie = new char[adresa.length() + 1];
+        strcpy(adresa_copie, adresa.c_str());
+
+        token = strtok(adresa_copie, ",");
+
+        char *buffer = NULL;
+
+        int length = 0;
+
+        if (newRequests[i].getWorkerId() == id)
+        {
+            buffer = newRequests[i].serializeRequestForWorker(i);
+
+            length = strlen(buffer);
+
+            send(socket, &length, sizeof(int), 0);
+
+            send(socket, buffer, length, 0);
+        }
+        else
+        {
+
+            for (int j = 0; j < workers[id].getDisponibilitate().size(); j++)
+            {
+                if (workers[id].getDisponibilitate()[j].first.c_str() == "Toata tara" && newRequests[i].getWorkerId() == -1)
+                {
+                    buffer = newRequests[i].serializeRequestForWorker(i);
+
+                    length = strlen(buffer);
+
+                    send(socket, &length, sizeof(int), 0);
+
+                    send(socket, buffer, length, 0);
+                    break;
+                }
+                else if (strstr(workers[id].getDisponibilitate()[j].first.c_str(), token) != NULL && newRequests[i].getWorkerId() == -1)
+                {
+                    buffer = newRequests[i].serializeRequestForWorker(i);
+
+                    length = strlen(buffer);
+
+                    send(socket, &length, sizeof(int), 0);
+
+                    send(socket, buffer, length, 0);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 void handle_worker_menu(int socket)
@@ -691,6 +950,7 @@ void handle_worker_menu(int socket)
 
         switch (optiune)
         {
+        // afisare disponibilitati worker
         case 10:
         {
             int id;
@@ -714,7 +974,7 @@ void handle_worker_menu(int socket)
 
             break;
         }
-
+        // adauga disponibilitate worker
         case 11:
         {
             int id;
@@ -749,24 +1009,32 @@ void handle_worker_menu(int socket)
             workers[id].addDisponibiliate(oras, timp);
 
             saveWorkers();
+
+            break;
         }
+        // afiseaza cererile noi
         case 12:
         {
             int id;
 
-            recv(socket,&id,sizeof(int),0);
+            recv(socket, &id, sizeof(int), 0);
 
-            getNewRequests(socket,id);
+            getNewRequests(socket, id);
+
+            break;
         }
+        // preia cerere
         case 13:
         {
             int id;
 
             int nr;
 
-            recv(socket,&id,sizeof(int),0);
+            recv(socket, &id, sizeof(int), 0);
 
-            recv(socket,&nr,sizeof(int),0);
+            recv(socket, &nr, sizeof(int), 0);
+
+            newRequests[nr].setWorkerId(id);
 
             ongoingRequests.push_back(newRequests[nr]);
 
@@ -776,9 +1044,27 @@ void handle_worker_menu(int socket)
 
             saveNewRequests();
 
-            int ok=0;
+            int ok = 0;
 
-            send(socket,&ok,sizeof(int),0);
+            send(socket, &ok, sizeof(int), 0);
+
+            break;
+        }
+        // stergere disponibilitate worker
+        case 14:
+        {
+            break;
+        }
+        // afiseaza cererile finalizate
+        case 15:
+        {
+            break;
+        }
+        // exit worker_menu
+        case 16:
+        {
+            handle_client(socket);
+            break;
         }
         }
     }
@@ -861,14 +1147,6 @@ void authenticate(int socket)
     }
 }
 
-void make_request(int socket)
-{
-}
-
-void get_request(int socket)
-{
-}
-
 void handle_client(int client_socket)
 {
 
@@ -894,16 +1172,6 @@ void handle_client(int client_socket)
         case 3:
         {
             authenticate(client_socket);
-            break;
-        }
-        case 4:
-        {
-            make_request(client_socket);
-            break;
-        }
-        case 5:
-        {
-            get_request(client_socket);
             break;
         }
         }

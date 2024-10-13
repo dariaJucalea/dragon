@@ -20,6 +20,9 @@ public:
   void getProgram(int id, int sock);
   void modificaProgramul(int id, int sock);
   void plaseazaCerere(int id, int sock);
+  int chooseWorker(int count, int* workersId, int id, int sock);
+  void getCereriPlasate(int id, int sock);
+  void getCereriFinalizateUser(int id, int sock);
 
   ~menu();
 };

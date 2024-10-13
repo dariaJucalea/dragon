@@ -1,4 +1,4 @@
-2
+4
 Tip: fizica
 Nume: Gae
 Prenume: Gabriel
@@ -7,7 +7,7 @@ Email: gabi@gmail.com
 Parola: gabi
 Stare: disponibil
 0
-5
+6
 Cluj
 Weekend days
 Bucuresti
@@ -18,6 +18,8 @@ Pitesti
 Weekend days
 Pitesti
 Weekend days
+Iasi
+Full time
 Tip: fizica
 Nume: Barbu
 Prenume: Denisa
@@ -26,8 +28,32 @@ Email: denisa@gmail.com
 Parola: denisa
 Stare: disponibil
 0
-88
+2
 Bucuresti
 Full time
 Ploiesti
 Weekend days
+Tip: fizica
+Nume: fff
+Prenume: fff
+Telefon: fff
+Email: fff
+Parola: fffd
+Stare: disponibil
+0
+1
+Bucuresti
+Full time
+Tip: fizica
+Nume: Culica
+Prenume: Amalia
+Telefon: 0767398060
+Email: ama@gmail.com
+Parola: ama
+Stare: disponibil
+0
+2
+Bucuresti
+Full time
+Pitesti
+Full time

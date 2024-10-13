@@ -225,3 +225,8 @@ void request::deserializeRequest(char *buffer)
         stareWorker = std::string(token);
     }
 }
+
+int request::getUserID()
+{
+    return this->idUser;
+}
