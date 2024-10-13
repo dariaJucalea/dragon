@@ -1,4 +1,4 @@
-8
+9
 Tip: fizica
 Nume: Jucalea
 Prenume: Daria
@@ -47,3 +47,9 @@ Prenume: Andrei
 Telefon: 0767398060
 Email: andrei@gmail.com
 Parola: andrei
+Tip: fizica
+Nume: aaa
+Prenume: aaa
+Telefon: dsasdaa
+Email: dsa
+Parola: ass

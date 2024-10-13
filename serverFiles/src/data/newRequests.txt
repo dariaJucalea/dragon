@@ -1,19 +1,46 @@
-2
-Creation time: 2024-08-28 11:30:35
-Titlu: Verificat sistem
-Descriere: Vreau sa verificati sistemul electric al casei
-Mod atribuire: automat
-Adresa: Pitesti, Calea Bucuresti, Nr 4
+5
+Creation time: 2024-10-04 23:21:11
+Titlu: Panou
+Descriere: DDSS
+Mod atribuire: manual
+Adresa: Pitesti, Bogati
 Id user: 0
-Id worker: -1
+Id worker: 3
 Stare cerere: Noua
 Stare worker: Indisponibil
-Creation time: 2024-08-28 12:52:53
-Titlu: Verificare panou
-Descriere: am de verificat un panou electric
-Mod atribuire: automat
-Adresa: Bucuresti, Sector 6, Strada Parafinei nr 6
+Creation time: 2024-10-04 21:28:07
+Titlu: dfgh
+Descriere: sdfghj
+Mod atribuire: manual
+Adresa: Bucuresti, 6
 Id user: 0
-Id worker: -1
+Id worker: 2
+Stare cerere: Noua
+Stare worker: Indisponibil
+Creation time: 2024-10-04 20:47:24
+Titlu: sdfds
+Descriere: adsfg
+Mod atribuire: manual
+Adresa: Bucuresti, Sector 5
+Id user: 0
+Id worker: 2
+Stare cerere: Noua
+Stare worker: Indisponibil
+Creation time: 2024-10-04 19:48:33
+Titlu: dfgf
+Descriere: sfdgf
+Mod atribuire: manual
+Adresa: Pitesti, Bosdfs
+Id user: 0
+Id worker: 0
+Stare cerere: Noua
+Stare worker: Indisponibil
+Creation time: 2024-10-04 18:54:04
+Titlu: sdsfdg
+Descriere: asdfgb
+Mod atribuire: manual
+Adresa: Bucuresti, Sector 6
+Id user: 0
+Id worker: 2
 Stare cerere: Noua
 Stare worker: Indisponibil
